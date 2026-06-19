@@ -11,9 +11,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO for updating an event by an administrator.
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,64 +18,33 @@ import java.time.LocalDateTime;
 @Builder
 public class UpdateEventAdminRequest {
 
-    /**
-     * Updated annotation.
-     */
     @Size(min = 20, max = 2000, message = "Аннотация должна быть от 20 до 2000 символов")
     private String annotation;
 
-    /**
-     * Updated category.
-     */
     private Long category;
 
-    /**
-     * Updated description.
-     */
     @Size(min = 20, max = 7000, message = "Описание должно быть от 20 до 7000 символов")
     private String description;
 
-    /**
-     * Updated event date.
-     */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
 
-    /**
-     * Updated coordinates.
-     */
     private LocationDto location;
 
-    /**
-     * Updated paid flag.
-     */
     private Boolean paid;
 
-    /**
-     * Updated participant limit.
-     */
     @PositiveOrZero(message = "Лимит участников не может быть отрицательным")
     private Integer participantLimit;
 
-    /**
-     * Request moderation flag.
-     */
     private Boolean requestModeration;
 
-    /**
-     * Administrator action.
-     */
     private StateAction stateAction;
 
-    /**
-     * Updated title.
-     */
     @Size(min = 3, max = 120, message = "Заголовок должен быть от 3 до 120 символов")
     private String title;
 
-    /**
-     * Administrator actions for an event.
-     */
+    private String moderationNote;
+
     public enum StateAction {
         PUBLISH_EVENT,
         REJECT_EVENT
