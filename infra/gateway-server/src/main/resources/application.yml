@@ -10,8 +10,7 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-          lowerCaseServiceId: true
+          enabled: false
       routes:
         - id: main-service
           uri: http://ewm-service:8080
