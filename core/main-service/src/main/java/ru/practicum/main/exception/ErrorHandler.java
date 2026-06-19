@@ -1,5 +1,6 @@
 package ru.practicum.main.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -13,31 +14,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Global exception handler for controllers.
- * <p>
- * Converts exceptions to the unified {@link ApiError} format.
- * Handles:
- * <ul>
- *     <li>{@link ValidationException} — 400</li>
- *     <li>{@link MethodArgumentNotValidException} — 400</li>
- *     <li>{@link MissingServletRequestParameterException} — 400</li>
- *     <li>{@link NotFoundException} — 404</li>
- *     <li>{@link ConflictException} — 409</li>
- *     <li>{@link DataIntegrityViolationException} — 409</li>
- *     <li>{@link Exception} — 500</li>
- * </ul>
- */
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
 
-        /**
-         * Handles business-rule validation errors.
-         *
-         * @param e validation exception
-         * @return error object with HTTP 400
-         */
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleValidationException(ValidationException e) {
@@ -51,12 +31,23 @@ public class ErrorHandler {
                 .build();
     }
 
-        /**
-         * Handles Bean Validation violations.
-         *
-         * @param e argument validation exception
-         * @return error object with HTTP 400 and error details
-         */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleConstraintViolationException(ConstraintViolationException e) {
+        String errors = e.getConstraintViolations().stream()
+                .map(v -> String.format("Field: %s. Error: %s. Value: %s",
+                        v.getPropertyPath(), v.getMessage(), v.getInvalidValue()))
+                .collect(Collectors.joining("; "));
+        log.warn("Ошибка валидации ограничений: {}", errors);
+        return ApiError.builder()
+                .errors(List.of(errors))
+                .message(errors)
+                .reason("Incorrectly made request.")
+                .status("BAD_REQUEST")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
@@ -74,9 +65,6 @@ public class ErrorHandler {
                 .build();
     }
 
-        /**
-         * Handles missing required request parameter.
-         */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
@@ -90,9 +78,6 @@ public class ErrorHandler {
                 .build();
     }
 
-        /**
-         * Handles missing required resource.
-         */
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(NotFoundException e) {
@@ -106,9 +91,6 @@ public class ErrorHandler {
                 .build();
     }
 
-        /**
-         * Handles business-rule conflicts.
-         */
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConflictException(ConflictException e) {
@@ -122,9 +104,6 @@ public class ErrorHandler {
                 .build();
     }
 
-        /**
-         * Handles data integrity violations.
-         */
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleDataIntegrityViolationException(DataIntegrityViolationException e) {
@@ -138,9 +117,6 @@ public class ErrorHandler {
                 .build();
     }
 
-        /**
-         * Handles unexpected exceptions.
-         */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleException(Exception e) {
