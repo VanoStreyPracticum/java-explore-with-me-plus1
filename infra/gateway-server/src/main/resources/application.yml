@@ -16,11 +16,11 @@ spring:
         - id: main-service
           uri: lb://main-service
           predicates:
-            - Path=/users/**,/admin/**,/categories/**,/events/**,/compilations/**
+            - Path=/users/**,/admin/**,/categories/**,/events/**,/compilations/**,/locations/**
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://discovery-server:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://discovery-server:8761/eureka/}
   instance:
     instance-id: ${spring.application.name}:${random.value}
