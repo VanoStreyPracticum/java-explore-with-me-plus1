@@ -135,6 +135,7 @@ class EventServiceImplTest {
                     .location(LocationDto.builder().lat(55.0f).lon(37.0f).build())
                     .build();
             when(userRepository.findById(1L)).thenReturn(Optional.of(initiator));
+            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
             assertThrows(ValidationException.class, () -> eventService.createEvent(1L, dto));
         }
 
