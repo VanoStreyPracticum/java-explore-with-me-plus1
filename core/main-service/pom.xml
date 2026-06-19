@@ -77,8 +77,6 @@
         <!-- Spring Cloud Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
 
         <!-- Spring Cloud Config Client -->
         <dependency>
