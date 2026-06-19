@@ -6,6 +6,7 @@ services:
     ports:
       - "8888:8888"
     environment:
+      SPRING_PROFILES_ACTIVE: native
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8888/actuator/health || exit 1"]
