@@ -14,13 +14,6 @@ spring:
           lowerCaseServiceId: true
       routes:
         - id: main-service
-          uri: lb://main-service
+          uri: http://ewm-service:8080
           predicates:
             - Path=/users/**,/admin/**,/categories/**,/events/**,/compilations/**,/locations/**
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://discovery-server:8761/eureka/}
-  instance:
-    instance-id: ${spring.application.name}:${random.value}
