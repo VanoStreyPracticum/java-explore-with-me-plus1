@@ -74,10 +74,6 @@
             <version>1.5.5.Final</version>
         </dependency>
 
-        <!-- Spring Cloud Eureka Client -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-
         <!-- Spring Cloud Config Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
