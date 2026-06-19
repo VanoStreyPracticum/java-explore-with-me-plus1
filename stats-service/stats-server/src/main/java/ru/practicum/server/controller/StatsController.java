@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.DateTimeFormatConstants;
@@ -34,7 +35,7 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public List<ViewStatsDto> getStats(
+    public ResponseEntity<List<ViewStatsDto>> getStats(
             @RequestParam("start") @NotNull
             @DateTimeFormat(pattern = DateTimeFormatConstants.DATE_TIME_PATTERN) LocalDateTime start,
             @RequestParam("end") @NotNull
@@ -45,9 +46,9 @@ public class StatsController {
         log.info("GET /stats: start={}, end={}, uris={}, unique={}", start, end, uris, unique);
 
         if (start.isAfter(end)) {
-            throw new IllegalArgumentException("Start date must be before end date");
+            return ResponseEntity.badRequest().build();
         }
 
-        return statsService.getStats(start, end, uris, unique);
+        return ResponseEntity.ok(statsService.getStats(start, end, uris, unique));
     }
 }
