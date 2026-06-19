@@ -1,6 +1,7 @@
 package ru.practicum.client;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.StatsRequestDto;
 import ru.practicum.dto.StatsResponseDto;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
@@ -19,29 +21,32 @@ import java.util.List;
 @Component
 public class StatsClient {
 
-    private final String serverUrl;
-    private final RestTemplate restTemplate;
+    private static final String STATS_SERVICE_ID = "stats-service";
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern(DateTimeFormatConstants.DATE_TIME_PATTERN);
 
-    public StatsClient(@Value("${stats-server.url}") String serverUrl,
-                       RestTemplate restTemplate) {
-        this.serverUrl = serverUrl;
+    private final DiscoveryClient discoveryClient;
+    private final RestTemplate restTemplate;
+
+    public StatsClient(DiscoveryClient discoveryClient, RestTemplate restTemplate) {
+        this.discoveryClient = discoveryClient;
         this.restTemplate = restTemplate;
     }
 
     public void hit(EndpointHitDto endpointHitDto) {
+        URI uri = makeUri("/hit");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<EndpointHitDto> request = new HttpEntity<>(endpointHitDto, headers);
-        restTemplate.exchange(serverUrl + "/hit", HttpMethod.POST, request, Void.class);
+        restTemplate.exchange(uri, HttpMethod.POST, request, Void.class);
     }
 
     public List<StatsResponseDto> getStats(StatsRequestDto requestDto) {
         String startEncoded = URLEncoder.encode(requestDto.getStart().format(FORMATTER), StandardCharsets.UTF_8);
         String endEncoded = URLEncoder.encode(requestDto.getEnd().format(FORMATTER), StandardCharsets.UTF_8);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(serverUrl + "/stats")
+        URI uri = makeUri("/stats");
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUri(uri)
                 .queryParam("start", startEncoded)
                 .queryParam("end", endEncoded)
                 .queryParam("unique", requestDto.getUnique());
@@ -57,5 +62,14 @@ public class StatsClient {
                 new ParameterizedTypeReference<List<StatsResponseDto>>() {}
         );
         return response.getBody();
+    }
+
+    private URI makeUri(String path) {
+        List<ServiceInstance> instances = discoveryClient.getInstances(STATS_SERVICE_ID);
+        if (instances.isEmpty()) {
+            throw new RuntimeException("No instances of " + STATS_SERVICE_ID + " found in Discovery");
+        }
+        ServiceInstance instance = instances.get(0);
+        return URI.create("http://" + instance.getHost() + ":" + instance.getPort() + path);
     }
 }
