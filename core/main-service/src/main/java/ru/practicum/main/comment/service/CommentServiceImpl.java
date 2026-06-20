@@ -63,9 +63,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto updateDto) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден: id=" + commentId));
-        if (!comment.getAuthor().getId().equals(userId)) {
-            throw new ConflictException("Вы не можете редактировать чужой комментарий");
-        }
+        validateCommentOwner(comment, userId);
         if (comment.getStatus() != CommentStatus.PENDING) {
             throw new ConflictException("Редактировать можно только комментарий в статусе ожидания");
         }
@@ -80,9 +78,7 @@ public class CommentServiceImpl implements CommentService {
     public void deleteCommentByUser(Long userId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден: id=" + commentId));
-        if (!comment.getAuthor().getId().equals(userId)) {
-            throw new ConflictException("Вы не можете удалить чужой комментарий");
-        }
+        validateCommentOwner(comment, userId);
         commentRepository.delete(comment);
         log.info("Пользователь удалил комментарий: id={}", commentId);
     }
@@ -90,40 +86,49 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentDto> getUserComments(Long userId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return commentRepository.findAllByAuthorId(userId, pageable)
+        List<CommentDto> result = commentRepository.findAllByAuthorId(userId, pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получены комментарии пользователя userId={}: count={}", userId, result.size());
+        return result;
     }
 
     @Override
     public List<CommentDto> getEventComments(Long eventId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return commentRepository.findAllByEventIdAndStatus(eventId, CommentStatus.PUBLISHED, pageable)
+        List<CommentDto> result = commentRepository.findAllByEventIdAndStatus(eventId, CommentStatus.PUBLISHED, pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получены опубликованные комментарии события eventId={}: count={}", eventId, result.size());
+        return result;
     }
 
     @Override
     public CommentDto getCommentById(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден: id=" + commentId));
+        log.info("Получен комментарий id={}", commentId);
         return toDto(comment);
     }
 
     @Override
     public List<CommentDto> getAdminComments(List<String> statuses, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
+        List<CommentDto> result;
         if (statuses != null && !statuses.isEmpty()) {
             List<CommentStatus> commentStatuses = statuses.stream()
                     .map(CommentStatus::valueOf)
                     .collect(Collectors.toList());
-            return commentRepository.findAllByStatusIn(commentStatuses, pageable)
+            result = commentRepository.findAllByStatusIn(commentStatuses, pageable)
                     .getContent().stream().map(this::toDto).collect(Collectors.toList());
+        } else {
+            result = commentRepository.findAll(pageable).getContent().stream()
+                    .map(this::toDto).collect(Collectors.toList());
         }
-        return commentRepository.findAll(pageable).getContent().stream()
-                .map(this::toDto).collect(Collectors.toList());
+        log.info("Администратор запросил комментарии statuses={}: count={}", statuses, result.size());
+        return result;
     }
 
     @Override
@@ -154,6 +159,12 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден: id=" + commentId));
         commentRepository.delete(comment);
         log.info("Администратор удалил комментарий: id={}", commentId);
+    }
+
+    private void validateCommentOwner(Comment comment, Long userId) {
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new ConflictException("Вы не можете редактировать или удалять чужой комментарий");
+        }
     }
 
     private CommentDto toDto(Comment comment) {

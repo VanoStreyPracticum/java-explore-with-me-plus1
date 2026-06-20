@@ -2,8 +2,8 @@ package ru.practicum.main.managedlocation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.exception.ValidationException;
 import ru.practicum.main.managedlocation.dto.ManagedLocationDto;
@@ -16,55 +16,50 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/locations")
 @RequiredArgsConstructor
-@Slf4j
 public class AdminManagedLocationController {
 
     private final ManagedLocationService service;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ManagedLocationDto create(@Valid @RequestBody NewManagedLocationDto dto) {
-        return service.create(dto);
+    public ResponseEntity<ManagedLocationDto> create(@Valid @RequestBody NewManagedLocationDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 
     @PatchMapping("/{locationId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ManagedLocationDto update(@PathVariable Long locationId,
-                                     @RequestBody UpdateManagedLocationDto dto) {
+    public ResponseEntity<ManagedLocationDto> update(@PathVariable Long locationId,
+                                                     @RequestBody UpdateManagedLocationDto dto) {
         if (locationId <= 0) {
             throw new ValidationException("locationId must be positive");
         }
-        return service.update(locationId, dto);
+        return ResponseEntity.ok(service.update(locationId, dto));
     }
 
     @DeleteMapping("/{locationId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long locationId) {
+    public ResponseEntity<Void> delete(@PathVariable Long locationId) {
         if (locationId <= 0) {
             throw new ValidationException("locationId must be positive");
         }
         service.delete(locationId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{locationId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ManagedLocationDto getById(@PathVariable Long locationId) {
+    public ResponseEntity<ManagedLocationDto> getById(@PathVariable Long locationId) {
         if (locationId <= 0) {
             throw new ValidationException("locationId must be positive");
         }
-        return service.getById(locationId);
+        return ResponseEntity.ok(service.getById(locationId));
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<ManagedLocationDto> getAll(@RequestParam(defaultValue = "0") int from,
-                                           @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<ManagedLocationDto>> getAll(@RequestParam(defaultValue = "0") int from,
+                                                           @RequestParam(defaultValue = "10") int size) {
         if (size <= 0) {
             throw new ValidationException("size must be positive");
         }
         if (from < 0) {
             throw new ValidationException("from must be >= 0");
         }
-        return service.getAll(from, size);
+        return ResponseEntity.ok(service.getAll(from, size));
     }
 }

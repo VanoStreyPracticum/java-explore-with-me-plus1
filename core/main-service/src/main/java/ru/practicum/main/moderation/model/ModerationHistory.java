@@ -24,10 +24,10 @@ public class ModerationHistory {
     private Event event;
 
     @Column(name = "moderator_id")
-    private Long moderatorId; // optional admin id
+    private Long moderatorId;
 
     @Column(nullable = false)
-    private String action; // PUBLISH_EVENT, REJECT_EVENT
+    private String action;
 
     @Column(name = "moderation_note")
     private String moderationNote;

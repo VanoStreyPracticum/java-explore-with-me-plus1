@@ -14,5 +14,5 @@ import lombok.Setter;
 @Builder
 public class NewRatingDto {
     @NotNull(message = "Голос обязателен")
-    private String vote; // LIKE or DISLIKE
+    private String vote;
 }
