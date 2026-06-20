@@ -63,19 +63,23 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public List<SubscriptionDto> getSubscriptions(Long userId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return subscriptionRepository.findAllByFollowerId(userId, pageable)
+        List<SubscriptionDto> result = subscriptionRepository.findAllByFollowerId(userId, pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получены подписки пользователя userId={}: count={}", userId, result.size());
+        return result;
     }
 
     @Override
     public List<SubscriptionDto> getFollowers(Long userId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return subscriptionRepository.findAllByTargetId(userId, pageable)
+        List<SubscriptionDto> result = subscriptionRepository.findAllByTargetId(userId, pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получены подписчики пользователя userId={}: count={}", userId, result.size());
+        return result;
     }
 
     private SubscriptionDto toDto(Subscription subscription) {

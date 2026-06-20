@@ -14,7 +14,8 @@ import lombok.Setter;
 @Builder
 public class AdminCommentActionDto {
     @NotNull(message = "Действие обязательно")
-    private String action; // PUBLISH or REJECT
+    /** Action: PUBLISH or REJECT. */
+    private String action;
 
     private String moderationNote;
 }

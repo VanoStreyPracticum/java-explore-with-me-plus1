@@ -83,10 +83,12 @@ public class RatingServiceImpl implements RatingService {
     @Override
     public List<RatingDto> getUserRatings(Long userId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return ratingRepository.findAllByUserId(userId, pageable)
+        List<RatingDto> result = ratingRepository.findAllByUserId(userId, pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получены оценки пользователя userId={}: count={}", userId, result.size());
+        return result;
     }
 
     @Override
@@ -96,11 +98,13 @@ public class RatingServiceImpl implements RatingService {
         }
         Long likes = ratingRepository.countByEventIdAndVote(eventId, Vote.LIKE);
         Long dislikes = ratingRepository.countByEventIdAndVote(eventId, Vote.DISLIKE);
-        return EventRatingDto.builder()
+        EventRatingDto result = EventRatingDto.builder()
                 .eventId(eventId)
                 .likes(likes)
                 .dislikes(dislikes)
                 .build();
+        log.info("Получен рейтинг события eventId={}: likes={}, dislikes={}", eventId, likes, dislikes);
+        return result;
     }
 
     private RatingDto toDto(Rating rating) {

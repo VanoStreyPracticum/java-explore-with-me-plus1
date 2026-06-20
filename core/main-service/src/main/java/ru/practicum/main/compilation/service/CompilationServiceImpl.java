@@ -93,15 +93,18 @@ public class CompilationServiceImpl implements CompilationService {
         } else {
             compilations = compilationRepository.findAll(pageable).getContent();
         }
-        return compilations.stream()
+        List<CompilationDto> result = compilations.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получен список подборок pinned={}, from={}, size={}, count={}", pinned, from, size, result.size());
+        return result;
     }
 
     @Override
     public CompilationDto getCompilationById(Long compId) {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException("Подборка не найдена: id=" + compId));
+        log.info("Получена подборка id={}", compId);
         return toDto(compilation);
     }
 

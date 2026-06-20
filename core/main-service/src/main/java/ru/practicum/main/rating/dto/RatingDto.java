@@ -15,5 +15,6 @@ public class RatingDto {
     private Long id;
     private Long userId;
     private Long eventId;
-    private String vote; // LIKE / DISLIKE
+    /** Vote type: LIKE or DISLIKE. */
+    private String vote;
 }

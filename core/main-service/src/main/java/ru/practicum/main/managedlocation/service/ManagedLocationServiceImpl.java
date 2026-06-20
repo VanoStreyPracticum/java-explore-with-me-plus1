@@ -63,15 +63,18 @@ public class ManagedLocationServiceImpl implements ManagedLocationService {
     public ManagedLocationDto getById(Long locationId) {
         ManagedLocation location = repository.findById(locationId)
                 .orElseThrow(() -> new NotFoundException("Локация не найдена: id=" + locationId));
+        log.info("Получена локация id={}", locationId);
         return toDto(location);
     }
 
     @Override
     public List<ManagedLocationDto> getAll(int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return repository.findAll(pageable).getContent().stream()
+        List<ManagedLocationDto> result = repository.findAll(pageable).getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получен список локаций from={}, size={}, count={}", from, size, result.size());
+        return result;
     }
 
     private ManagedLocationDto toDto(ManagedLocation location) {

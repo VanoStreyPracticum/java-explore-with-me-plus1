@@ -58,8 +58,10 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> getUserEvents(Long userId, int from, int size) {
         validateUserExists(userId);
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable).getContent();
-        return eventMapper.toEventShortDtoList(events);
+        List<EventShortDto> result = eventMapper.toEventShortDtoList(
+                eventRepository.findAllByInitiatorId(userId, pageable).getContent());
+        log.info("Получены события пользователя userId={}: count={}", userId, result.size());
+        return result;
     }
 
     @Override
@@ -86,6 +88,7 @@ public class EventServiceImpl implements EventService {
         validateUserExists(userId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено: id=" + eventId));
+        log.info("Получено событие пользователя userId={}, eventId={}", userId, eventId);
         return eventMapper.toEventFullDto(event);
     }
 
@@ -128,9 +131,12 @@ public class EventServiceImpl implements EventService {
             int from,
             int size) {
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        List<Event> events = eventRepository.findEventsForAdmin(
-                users, states, categories, rangeStart, rangeEnd, pageable).getContent();
-        return eventMapper.toEventFullDtoList(events);
+        List<EventFullDto> result = eventMapper.toEventFullDtoList(
+                eventRepository.findEventsForAdmin(
+                        users, states, categories, rangeStart, rangeEnd, pageable).getContent());
+        log.info("Администратор выполнил поиск событий: users={}, states={}, categories={}, count={}",
+                users, states, categories, result.size());
+        return result;
     }
 
     @Override
@@ -229,6 +235,7 @@ public class EventServiceImpl implements EventService {
                     .sorted(Comparator.comparing(Event::getEventDate))
                     .collect(Collectors.toList());
         }
+        log.info("Публичный поиск событий: text={}, categories={}, count={}", text, categories, events.size());
         return eventMapper.toEventShortDtoList(events);
     }
 
@@ -239,6 +246,7 @@ public class EventServiceImpl implements EventService {
         saveHit(request);
         Map<Long, Long> viewsMap = getViewsForEvents(List.of(event));
         event.setViews(viewsMap.getOrDefault(eventId, 0L));
+        log.info("Получено опубликованное событие id={}", eventId);
         return eventMapper.toEventFullDto(event);
     }
 
@@ -246,6 +254,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto getEventById(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено: id=" + eventId));
+        log.info("Получено событие id={}", eventId);
         return eventMapper.toEventFullDto(event);
     }
 

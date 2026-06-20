@@ -1,6 +1,7 @@
 package ru.practicum.main.moderation.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class ModerationHistoryServiceImpl implements ModerationHistoryService {
 
@@ -22,10 +24,12 @@ public class ModerationHistoryServiceImpl implements ModerationHistoryService {
     @Override
     public List<ModerationHistoryDto> getEventModerationHistory(Long eventId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return repository.findAllByEventIdOrderByTimestampDesc(eventId, pageable)
+        List<ModerationHistoryDto> result = repository.findAllByEventIdOrderByTimestampDesc(eventId, pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получена история модерации события eventId={}: count={}", eventId, result.size());
+        return result;
     }
 
     private ModerationHistoryDto toDto(ModerationHistory entity) {

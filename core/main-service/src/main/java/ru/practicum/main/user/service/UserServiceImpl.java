@@ -28,10 +28,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        List<User> users = userRepository.findByIds(ids, pageable).getContent();
-        return users.stream()
+        List<UserDto> result = userRepository.findByIds(ids, pageable).getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        log.info("Получен список пользователей ids={}, from={}, size={}, count={}", ids, from, size, result.size());
+        return result;
     }
 
     @Override
