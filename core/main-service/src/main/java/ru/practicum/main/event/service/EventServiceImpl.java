@@ -184,7 +184,7 @@ public class EventServiceImpl implements EventService {
         if (stateChanged) {
             ModerationHistory history = ModerationHistory.builder()
                     .event(updatedEvent)
-                    .moderatorId(null) // может быть установлен, если известен администратор
+                    .moderatorId(null)
                     .action(action)
                     .moderationNote(moderationNote)
                     .timestamp(LocalDateTime.now())

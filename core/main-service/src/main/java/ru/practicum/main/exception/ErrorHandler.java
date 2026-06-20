@@ -1,5 +1,6 @@
 package ru.practicum.main.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,8 +21,9 @@ public class ErrorHandler {
 
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleValidationException(ValidationException e) {
-        log.warn("Ошибка валидации: {}", e.getMessage());
+    public ApiError handleValidationException(ValidationException e, HttpServletRequest request) {
+        log.warn("Ошибка валидации: {} (method={} url={} params={})",
+                e.getMessage(), request.getMethod(), request.getRequestURI(), request.getQueryString());
         return ApiError.builder()
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
@@ -33,12 +35,13 @@ public class ErrorHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleConstraintViolationException(ConstraintViolationException e) {
+    public ApiError handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request) {
         String errors = e.getConstraintViolations().stream()
                 .map(v -> String.format("Field: %s. Error: %s. Value: %s",
                         v.getPropertyPath(), v.getMessage(), v.getInvalidValue()))
                 .collect(Collectors.joining("; "));
-        log.warn("Ошибка валидации ограничений: {}", errors);
+        log.warn("Ошибка валидации ограничений: {} (method={} url={} params={})",
+                errors, request.getMethod(), request.getRequestURI(), request.getQueryString());
         return ApiError.builder()
                 .errors(List.of(errors))
                 .message(errors)
@@ -50,12 +53,13 @@ public class ErrorHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ApiError handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest request) {
         String errors = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> String.format("Field: %s. Error: %s. Value: %s",
                         error.getField(), error.getDefaultMessage(), error.getRejectedValue()))
                 .collect(Collectors.joining("; "));
-        log.warn("Ошибка валидации аргументов: {}", errors);
+        log.warn("Ошибка валидации аргументов: {} (method={} url={} params={})",
+                errors, request.getMethod(), request.getRequestURI(), request.getQueryString());
         return ApiError.builder()
                 .errors(List.of(errors))
                 .message(errors)
@@ -67,8 +71,9 @@ public class ErrorHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        log.warn("Отсутствует обязательный параметр: {}", e.getMessage());
+    public ApiError handleMissingServletRequestParameterException(MissingServletRequestParameterException e, HttpServletRequest request) {
+        log.warn("Отсутствует обязательный параметр: {} (method={} url={} params={})",
+                e.getMessage(), request.getMethod(), request.getRequestURI(), request.getQueryString());
         return ApiError.builder()
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
@@ -119,8 +124,9 @@ public class ErrorHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleException(Exception e) {
-        log.error("Внутренняя ошибка сервера: ", e);
+    public ApiError handleException(Exception e, HttpServletRequest request) {
+        log.error("Внутренняя ошибка сервера: method={} url={} params={} error={}",
+                request.getMethod(), request.getRequestURI(), request.getQueryString(), e.getMessage(), e);
         return ApiError.builder()
                 .errors(List.of(e.getMessage()))
                 .message("An unexpected error occurred")
