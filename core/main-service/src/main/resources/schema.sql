@@ -160,3 +160,7 @@ CREATE TABLE IF NOT EXISTS ratings (
     created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
     UNIQUE (user_id, event_id)
 );
+
+-- Добавим колонку created, если пропущена (через ALTER, игнорируя ошибку если уже есть)
+ALTER TABLE IF EXISTS subscriptions ADD COLUMN IF NOT EXISTS created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW();
+ALTER TABLE IF EXISTS ratings ADD COLUMN IF NOT EXISTS created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW();
