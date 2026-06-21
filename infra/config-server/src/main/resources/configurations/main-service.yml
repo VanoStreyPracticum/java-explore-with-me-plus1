@@ -1,0 +1,30 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: main-service
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: ${MAIN_DB_URL:jdbc:postgresql://localhost:5434/main_db}
+    username: ${MAIN_DB_USER:postgres}
+    password: ${MAIN_DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+    defer-datasource-initialization: true
+
+stats-server:
+  url: ${STATS_SERVER_URL:http://localhost:9090}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${random.value}
