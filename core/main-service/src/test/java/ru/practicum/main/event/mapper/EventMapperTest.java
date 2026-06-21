@@ -68,10 +68,8 @@ class EventMapperTest {
     @Test
     @DisplayName("toEventFullDto: должен корректно маппить Event в EventFullDto")
     void toEventFullDto_MapsCorrectly() {
-        // Action
         EventFullDto result = eventMapper.toEventFullDto(event);
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getTitle()).isEqualTo("Test Event");
@@ -101,10 +99,8 @@ class EventMapperTest {
     @Test
     @DisplayName("toEventShortDto: должен корректно маппить Event в EventShortDto")
     void toEventShortDto_MapsCorrectly() {
-        // Action
         EventShortDto result = eventMapper.toEventShortDto(event);
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getTitle()).isEqualTo("Test Event");
@@ -124,7 +120,6 @@ class EventMapperTest {
     @Test
     @DisplayName("toEventShortDtoList: должен маппить список событий")
     void toEventShortDtoList_MapsCorrectly() {
-        // Setup
         Event event2 = new Event();
         event2.setId(2L);
         event2.setTitle("Second Event");
@@ -138,10 +133,8 @@ class EventMapperTest {
 
         List<Event> events = List.of(event, event2);
 
-        // Action
         List<EventShortDto> result = eventMapper.toEventShortDtoList(events);
 
-        // Assert
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getId()).isEqualTo(1L);
         assertThat(result.get(1).getId()).isEqualTo(2L);
@@ -150,13 +143,10 @@ class EventMapperTest {
     @Test
     @DisplayName("toEventFullDtoList: должен маппить список в полные DTO")
     void toEventFullDtoList_MapsCorrectly() {
-        // Setup
         List<Event> events = List.of(event);
 
-        // Action
         List<EventFullDto> result = eventMapper.toEventFullDtoList(events);
 
-        // Assert
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
         assertThat(result.get(0).getDescription()).isEqualTo("Full description of the test event");
@@ -165,7 +155,6 @@ class EventMapperTest {
     @Test
     @DisplayName("toEvent: должен маппить NewEventDto в Event")
     void toEvent_MapsCorrectly() {
-        // Setup
         NewEventDto newEventDto = NewEventDto.builder()
                 .title("New Event")
                 .annotation("New event annotation text")
@@ -177,10 +166,8 @@ class EventMapperTest {
                 .requestModeration(false)
                 .build();
 
-        // Action
         Event result = eventMapper.toEvent(newEventDto);
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getTitle()).isEqualTo("New Event");
         assertThat(result.getAnnotation()).isEqualTo("New event annotation text");
@@ -193,13 +180,10 @@ class EventMapperTest {
     @Test
     @DisplayName("toLocation: должен маппить LocationDto в Location")
     void toLocation_MapsCorrectly() {
-        // Setup
         LocationDto locationDto = new LocationDto(60.0f, 30.0f);
 
-        // Action
         Location result = eventMapper.toLocation(locationDto);
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getLat()).isEqualTo(60.0f);
         assertThat(result.getLon()).isEqualTo(30.0f);
@@ -208,39 +192,31 @@ class EventMapperTest {
     @Test
     @DisplayName("updateEventFromUserRequest: должен обновить поля события")
     void updateEventFromUserRequest_UpdatesFields() {
-        // Setup
         UpdateEventUserRequest updateRequest = new UpdateEventUserRequest();
         updateRequest.setTitle("Updated Title");
         updateRequest.setAnnotation("Updated annotation text");
         updateRequest.setPaid(false);
         updateRequest.setParticipantLimit(200);
 
-        // Action
         eventMapper.updateEventFromUserRequest(updateRequest, event);
 
-        // Assert
         assertThat(event.getTitle()).isEqualTo("Updated Title");
         assertThat(event.getAnnotation()).isEqualTo("Updated annotation text");
         assertThat(event.getPaid()).isFalse();
         assertThat(event.getParticipantLimit()).isEqualTo(200);
-        // Fields that were not updated should remain unchanged
         assertThat(event.getDescription()).isEqualTo("Full description of the test event");
     }
 
     @Test
     @DisplayName("updateEventFromUserRequest: null поля не должны обновлять событие")
     void updateEventFromUserRequest_NullFields_NotUpdated() {
-        // Setup
         String originalTitle = event.getTitle();
         String originalAnnotation = event.getAnnotation();
 
         UpdateEventUserRequest updateRequest = new UpdateEventUserRequest();
-        // All fields are null
 
-        // Action
         eventMapper.updateEventFromUserRequest(updateRequest, event);
 
-        // Assert
         assertThat(event.getTitle()).isEqualTo(originalTitle);
         assertThat(event.getAnnotation()).isEqualTo(originalAnnotation);
     }
@@ -248,15 +224,12 @@ class EventMapperTest {
     @Test
     @DisplayName("updateEventFromAdminRequest: должен обновить поля события")
     void updateEventFromAdminRequest_UpdatesFields() {
-        // Setup
         UpdateEventAdminRequest updateRequest = new UpdateEventAdminRequest();
         updateRequest.setTitle("Admin Updated Title");
         updateRequest.setDescription("Admin updated description");
 
-        // Action
         eventMapper.updateEventFromAdminRequest(updateRequest, event);
 
-        // Assert
         assertThat(event.getTitle()).isEqualTo("Admin Updated Title");
         assertThat(event.getDescription()).isEqualTo("Admin updated description");
     }
@@ -264,20 +237,16 @@ class EventMapperTest {
     @Test
     @DisplayName("toEventFullDto: null input возвращает null")
     void toEventFullDto_NullInput_ReturnsNull() {
-        // Action
         EventFullDto result = eventMapper.toEventFullDto(null);
 
-        // Assert
         assertThat(result).isNull();
     }
 
     @Test
     @DisplayName("toEventShortDtoList: пустой список возвращает пустой список")
     void toEventShortDtoList_EmptyList_ReturnsEmptyList() {
-        // Action
         List<EventShortDto> result = eventMapper.toEventShortDtoList(List.of());
 
-        // Assert
         assertThat(result).isEmpty();
     }
 }
