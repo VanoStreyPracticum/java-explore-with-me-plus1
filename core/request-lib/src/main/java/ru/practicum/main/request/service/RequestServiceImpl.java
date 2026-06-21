@@ -37,7 +37,6 @@ public class RequestServiceImpl implements RequestService {
     private final UserRepository userRepository;
     private final RequestMapper requestMapper;
 
-    // ========== Методы пользователя ==========
 
     @Override
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
@@ -145,7 +144,6 @@ public class RequestServiceImpl implements RequestService {
         return requestMapper.toDto(updatedRequest);
     }
 
-    // ========== Методы организатора события ==========
 
     @Override
     public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
@@ -262,7 +260,6 @@ public class RequestServiceImpl implements RequestService {
                 .build();
     }
 
-    // ========== Вспомогательные методы ==========
 
     private void validateUserExists(Long userId) {
         if (!userRepository.existsById(userId)) {
