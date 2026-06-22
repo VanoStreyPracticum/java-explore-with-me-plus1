@@ -19,6 +19,8 @@
         <module>stats-dto</module>
         <module>stats-client</module>
         <module>stats-server</module>
+        <module>stats-avro-schemas</module>
+        <module>stats-grpc-proto</module>
     </modules>
 
     <properties>
