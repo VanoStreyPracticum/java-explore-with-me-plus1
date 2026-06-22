@@ -19,6 +19,9 @@
         <module>stats-dto</module>
         <module>stats-client</module>
         <module>stats-server</module>
+        <module>collector</module>
+        <module>aggregator</module>
+        <module>analyzer</module>
         <module>stats-avro-schemas</module>
         <module>stats-grpc-proto</module>
     </modules>
