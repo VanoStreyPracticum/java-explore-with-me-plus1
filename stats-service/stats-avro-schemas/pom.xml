@@ -10,6 +10,9 @@
     </parent>
     <artifactId>stats-avro-schemas</artifactId>
     <name>stats-avro-schemas</name>
+    <properties>
+        <checkstyle.skip>true</checkstyle.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.avro</groupId>

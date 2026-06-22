@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventService {
+
     List<EventShortDto> getUserEvents(Long userId, int from, int size);
 
     EventFullDto createEvent(Long userId, NewEventDto newEventDto);
@@ -33,7 +34,6 @@ public interface EventService {
 
     EventFullDto getEventById(Long eventId);
 
-    // Новые методы
     List<EventShortDto> getRecommendations(Long userId, int maxResults);
 
     void likeEvent(Long userId, Long eventId);

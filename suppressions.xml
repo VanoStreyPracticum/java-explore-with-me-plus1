@@ -1,14 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suppressions PUBLIC
-  "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
-  "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 <suppressions>
-  <suppress checks="." files="[/\\]generated-sources[/\\]" />
-  <suppress checks="." files=".*[/\\]proto[/\\]StatsServiceProto\.java" />
-  <suppress checks="." files=".*[/\\]proto[/\\]UserActionControllerGrpc\.java" />
-  <suppress checks="." files=".*[/\\]proto[/\\]RecommendationsControllerGrpc\.java" />
-  <suppress checks="." files=".*[/\\]avro[/\\]ActionTypeAvro\.java" />
-  <suppress checks="." files=".*[/\\]avro[/\\]EventSimilarityAvro\.java" />
-  <suppress checks="." files=".*[/\\]avro[/\\]UserActionAvro\.java" />
-  <suppress checks="." files=".*[/\\]event-lib[/\\].*\.java" />
+    <!-- Игнорируем все сгенерированные исходники -->
+    <suppress checks=".*" files="target[/\\]generated-sources[/\\]"/>
 </suppressions>
