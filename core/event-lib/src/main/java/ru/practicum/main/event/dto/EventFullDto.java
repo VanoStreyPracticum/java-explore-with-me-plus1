@@ -103,5 +103,6 @@ public class EventFullDto {
     /**
      * View count.
      */
+    private Long views;
     private double rating;
 }

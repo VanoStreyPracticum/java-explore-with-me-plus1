@@ -28,6 +28,7 @@ public class Event {
     @JoinColumn(name = "category_id", nullable = false)
     Category category;
 
+    @Builder.Default
     @Column(name = "confirmed_requests")
     Long confirmedRequests = 0L;
 
@@ -48,24 +49,31 @@ public class Event {
     Location location;
 
     @Column(nullable = false)
+    @Builder.Default
     Boolean paid = false;
 
     @Column(name = "participant_limit")
+    @Builder.Default
     Integer participantLimit = 0;
 
     @Column(name = "published_on")
     LocalDateTime publishedOn;
 
     @Column(name = "request_moderation")
+    @Builder.Default
     Boolean requestModeration = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     EventState state = EventState.PENDING;
 
     @Column(nullable = false, length = 120)
     String title;
 
-    @Column(name = "rating")
+    @Builder.Default
+    Long views = 0L;
+
+    @Builder.Default
     Double rating = 0.0;
 }
