@@ -10,6 +10,9 @@
     </parent>
     <artifactId>stats-grpc-proto</artifactId>
     <name>stats-grpc-proto</name>
+    <properties>
+        <checkstyle.skip>true</checkstyle.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>io.grpc</groupId>

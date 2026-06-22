@@ -4,5 +4,7 @@
   "https://checkstyle.org/dtds/suppressions_1_2_xpath_experimental.dtd"\>
 <suppressions>
   <suppress checks="." files="[/\\]generated-sources[/\\]" />
-  <suppress checks="." files="[/\\]ru[/\\]practicum[/\\]ewm[/\\]stats[/\\]proto[/\\]" />
+  <suppress checks="." files=".*[/\\]proto[/\\]StatsServiceProto\.java" />
+  <suppress checks="." files=".*[/\\]proto[/\\]UserActionControllerGrpc\.java" />
+  <suppress checks="." files=".*[/\\]proto[/\\]RecommendationsControllerGrpc\.java" />
 </suppressions>
