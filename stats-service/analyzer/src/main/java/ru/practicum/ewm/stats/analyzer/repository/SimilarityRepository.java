@@ -18,6 +18,6 @@ public interface SimilarityRepository extends JpaRepository<EventSimilarity, Lon
            nativeQuery = true)
     void upsert(@Param("eventA") Long eventA, @Param("eventB") Long eventB, @Param("score") Double score);
 
-    @Query("SELECT s FROM EventSimilarity s WHERE s.eventA = :eventId OR s.eventB = :eventId")
+    @Query("SELECT s FROM EventSimilarity s WHERE s.id.eventA = :eventId OR s.id.eventB = :eventId")
     List<EventSimilarity> findByEventId(@Param("eventId") Long eventId);
 }

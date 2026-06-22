@@ -12,13 +12,11 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserAction {
-    @Id
-    @Column(name = "user_id")
-    Long userId;
-
-    @Id
-    @Column(name = "event_id")
-    Long eventId;
+    @EmbeddedId
+    UserActionId id;
 
     Double weight;
+
+    public Long getUserId() { return id.getUserId(); }
+    public Long getEventId() { return id.getEventId(); }
 }

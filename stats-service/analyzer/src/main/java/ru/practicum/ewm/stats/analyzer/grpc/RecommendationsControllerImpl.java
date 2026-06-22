@@ -4,7 +4,6 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.springframework.data.domain.PageRequest;
 import ru.practicum.ewm.stats.analyzer.model.EventSimilarity;
 import ru.practicum.ewm.stats.analyzer.model.UserAction;
 import ru.practicum.ewm.stats.analyzer.repository.SimilarityRepository;
@@ -32,33 +31,28 @@ public class RecommendationsControllerImpl extends RecommendationsControllerGrpc
         long userId = request.getUserId();
         int maxResults = request.getMaxResults();
 
-        // Получаем действия пользователя
         List<UserAction> userActions = userActionRepository.findAllByUserId(userId);
         if (userActions.isEmpty()) {
             responseObserver.onCompleted();
             return;
         }
 
-        // Получаем множество событий, с которыми пользователь взаимодействовал
         Set<Long> interactedEventIds = userActions.stream()
                 .map(UserAction::getEventId)
                 .collect(Collectors.toSet());
 
-        // Для каждого действия находим похожие события, с которыми пользователь ещё не взаимодействовал
         Map<Long, Double> predictedScores = new HashMap<>();
         for (UserAction action : userActions) {
             List<EventSimilarity> similarities = similarityRepository.findByEventId(action.getEventId());
             for (EventSimilarity sim : similarities) {
-                long similarEvent = sim.getEventA().equals(action.getEventId()) ? sim.getEventB() : sim.getEventA();
+                long similarEvent = sim.getId().getEventA().equals(action.getEventId()) ? sim.getId().getEventB() : sim.getId().getEventA();
                 if (!interactedEventIds.contains(similarEvent)) {
-                    // Предсказанная оценка = вес действия * сходство
                     double predicted = action.getWeight() * sim.getScore();
                     predictedScores.merge(similarEvent, predicted, Double::sum);
                 }
             }
         }
 
-        // Сортируем и отправляем top-N
         predictedScores.entrySet().stream()
                 .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
                 .limit(maxResults)
@@ -85,7 +79,7 @@ public class RecommendationsControllerImpl extends RecommendationsControllerGrpc
         List<EventSimilarity> similarities = similarityRepository.findByEventId(eventId);
         similarities.stream()
                 .map(s -> {
-                    long other = s.getEventA().equals(eventId) ? s.getEventB() : s.getEventA();
+                    long other = s.getId().getEventA().equals(eventId) ? s.getId().getEventB() : s.getId().getEventA();
                     return Map.entry(other, s.getScore());
                 })
                 .filter(e -> !interactedEvents.contains(e.getKey()))

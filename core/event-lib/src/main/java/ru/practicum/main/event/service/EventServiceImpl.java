@@ -249,8 +249,23 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено: id=" + eventId));
         saveHit(request);
-        Map<Long, Long> viewsMap = getViewsForEvents(List.of(event));
-        event.setViews(viewsMap.getOrDefault(eventId, 0L));
+        // Отправляем просмотр в Collector
+        try {
+            Long userId = extractUserIdFromHeader(request);
+            if (userId != 0L) {
+                collectorClient.sendUserAction(userId, eventId, StatsServiceProto.ActionTypeProto.ACTION_VIEW);
+            }
+        } catch (Exception e) {
+            log.warn("Не удалось отправить действие просмотра: {}", e.getMessage());
+        }
+        // Получаем рейтинг из Analyzer
+        double rating = 0.0;
+        try {
+            rating = analyzerClient.getInteractionsCount(eventId);
+        } catch (Exception e) {
+            log.warn("Не удалось получить рейтинг из Analyzer: {}", e.getMessage());
+        }
+        event.setRating(rating);
         log.info("Получено опубликованное событие id={}", eventId);
         return eventMapper.toEventFullDto(event);
     }
@@ -263,17 +278,34 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(event);
     }
 
-    // Новые методы с минимальной реализацией (чтобы компиляция проходила)
     @Override
     public List<EventShortDto> getRecommendations(Long userId, int maxResults) {
-        log.info("Запрос рекомендаций для пользователя {}", userId);
-        return List.of(); // Заглушка, чтобы не падало
+        try {
+            List<StatsServiceProto.RecommendedEventProto> recs = analyzerClient.getRecommendationsForUser(userId, maxResults);
+            return recs.stream()
+                    .map(r -> {
+                        Event event = eventRepository.findById(r.getEventId()).orElse(null);
+                        if (event == null) return null;
+                        EventShortDto dto = eventMapper.toEventShortDto(event);
+                        dto.setRating(r.getScore());
+                        return dto;
+                    })
+                    .filter(dto -> dto != null)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Не удалось получить рекомендации: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     @Override
     public void likeEvent(Long userId, Long eventId) {
-        log.info("Пользователь {} лайкнул событие {}", userId, eventId);
-        // Заглушка
+        try {
+            collectorClient.sendUserAction(userId, eventId, StatsServiceProto.ActionTypeProto.ACTION_LIKE);
+            log.info("Пользователь {} лайкнул событие {}", userId, eventId);
+        } catch (Exception e) {
+            log.warn("Не удалось отправить лайк: {}", e.getMessage());
+        }
     }
 
     private void validateUserExists(Long userId) {
@@ -337,5 +369,13 @@ public class EventServiceImpl implements EventService {
     private Long extractEventIdFromUri(String uri) {
         String[] parts = uri.split("/");
         return Long.parseLong(parts[parts.length - 1]);
+    }
+
+    private Long extractUserIdFromHeader(HttpServletRequest request) {
+        String userIdHeader = request.getHeader("X-EWM-USER-ID");
+        if (userIdHeader != null) {
+            return Long.parseLong(userIdHeader);
+        }
+        return 0L;
     }
 }

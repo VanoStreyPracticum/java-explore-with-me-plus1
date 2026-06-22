@@ -12,13 +12,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EventSimilarity {
-    @Id
-    @Column(name = "event_a")
-    Long eventA;
-
-    @Id
-    @Column(name = "event_b")
-    Long eventB;
+    @EmbeddedId
+    EventSimilarityId id;
 
     Double score;
 }

@@ -18,5 +18,6 @@ public interface UserActionRepository extends JpaRepository<UserAction, Long> {
            nativeQuery = true)
     void upsert(@Param("userId") Long userId, @Param("eventId") Long eventId, @Param("weight") Double weight);
 
-    List<UserAction> findAllByUserId(Long userId);
+    @Query("SELECT ua FROM UserAction ua WHERE ua.id.userId = :userId")
+    List<UserAction> findAllByUserId(@Param("userId") Long userId);
 }

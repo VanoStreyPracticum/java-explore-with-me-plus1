@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 8083
 spring:
   application:
     name: analyzer
@@ -35,7 +35,7 @@ eureka:
       defaultZone: http://discovery-server:8761/eureka/
 grpc:
   server:
-    port: 0
+    port: 8083
 management:
   endpoints:
     web:
