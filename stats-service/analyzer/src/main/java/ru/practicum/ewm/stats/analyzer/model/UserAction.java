@@ -17,6 +17,11 @@ public class UserAction {
 
     Double weight;
 
-    public Long getUserId() { return id.getUserId(); }
-    public Long getEventId() { return id.getEventId(); }
+    public Long getUserId() {
+        return id.getUserId();
+    }
+
+    public Long getEventId() {
+        return id.getEventId();
+    }
 }
