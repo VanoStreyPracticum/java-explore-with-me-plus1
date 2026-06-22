@@ -249,6 +249,8 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено: id=" + eventId));
         saveHit(request);
+        Map<Long, Long> viewsMap = getViewsForEvents(List.of(event));
+        event.setViews(viewsMap.getOrDefault(eventId, 0L));
         // Отправляем просмотр в Collector
         try {
             Long userId = extractUserIdFromHeader(request);
