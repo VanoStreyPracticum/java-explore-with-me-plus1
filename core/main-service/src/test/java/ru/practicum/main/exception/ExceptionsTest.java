@@ -39,7 +39,6 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен бросаться и перехватываться")
         void canBeThrown() {
-            // Action and assert
             assertThatThrownBy(() -> {
                 throw new NotFoundException("Event with id=1 not found");
             })
@@ -63,7 +62,6 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен бросаться и перехватываться")
         void canBeThrown() {
-            // Action and assert
             assertThatThrownBy(() -> {
                 throw new ConflictException("Email already exists");
             })
@@ -87,7 +85,6 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен бросаться и перехватываться")
         void canBeThrown() {
-            // Action and assert
             assertThatThrownBy(() -> {
                 throw new ValidationException("Invalid date format");
             })

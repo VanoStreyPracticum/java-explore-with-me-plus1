@@ -10,6 +10,7 @@ import ru.practicum.main.comment.dto.CommentDto;
 import ru.practicum.main.comment.dto.NewCommentDto;
 import ru.practicum.main.comment.dto.UpdateCommentDto;
 import ru.practicum.main.comment.dto.AdminCommentActionDto;
+import ru.practicum.main.comment.model.AdminCommentAction;
 import ru.practicum.main.comment.model.Comment;
 import ru.practicum.main.comment.model.CommentStatus;
 import ru.practicum.main.comment.repository.CommentRepository;
@@ -136,10 +137,10 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto moderateComment(Long commentId, AdminCommentActionDto actionDto) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден: id=" + commentId));
-        String action = actionDto.getAction();
-        if ("PUBLISH".equalsIgnoreCase(action)) {
+        AdminCommentAction action = actionDto.getAction();
+        if (action == AdminCommentAction.PUBLISH) {
             comment.setStatus(CommentStatus.PUBLISHED);
-        } else if ("REJECT".equalsIgnoreCase(action)) {
+        } else if (action == AdminCommentAction.REJECT) {
             comment.setStatus(CommentStatus.REJECTED);
         } else {
             throw new ValidationException("Некорректное действие модерации: " + action);

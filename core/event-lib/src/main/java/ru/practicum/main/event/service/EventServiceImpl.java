@@ -9,9 +9,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatsClient;
+import ru.practicum.client.grpc.AnalyzerClient;
+import ru.practicum.client.grpc.CollectorClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.StatsRequestDto;
 import ru.practicum.dto.StatsResponseDto;
+import ru.practicum.ewm.stats.proto.StatsServiceProto;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
@@ -52,6 +55,8 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatsClient statsClient;
+    private final CollectorClient collectorClient;
+    private final AnalyzerClient analyzerClient;
     private final ModerationHistoryRepository moderationHistoryRepository;
 
     @Override
@@ -246,6 +251,21 @@ public class EventServiceImpl implements EventService {
         saveHit(request);
         Map<Long, Long> viewsMap = getViewsForEvents(List.of(event));
         event.setViews(viewsMap.getOrDefault(eventId, 0L));
+        try {
+            Long userId = extractUserIdFromHeader(request);
+            if (userId != 0L) {
+                collectorClient.sendUserAction(userId, eventId, StatsServiceProto.ActionTypeProto.ACTION_VIEW);
+            }
+        } catch (Exception e) {
+            log.warn("Не удалось отправить действие просмотра: {}", e.getMessage());
+        }
+        double rating = 0.0;
+        try {
+            rating = analyzerClient.getInteractionsCount(eventId);
+        } catch (Exception e) {
+            log.warn("Не удалось получить рейтинг из Analyzer: {}", e.getMessage());
+        }
+        event.setRating(rating);
         log.info("Получено опубликованное событие id={}", eventId);
         return eventMapper.toEventFullDto(event);
     }
@@ -256,6 +276,36 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Событие не найдено: id=" + eventId));
         log.info("Получено событие id={}", eventId);
         return eventMapper.toEventFullDto(event);
+    }
+
+    @Override
+    public List<EventShortDto> getRecommendations(Long userId, int maxResults) {
+        try {
+            List<StatsServiceProto.RecommendedEventProto> recs = analyzerClient.getRecommendationsForUser(userId, maxResults);
+            return recs.stream()
+                    .map(r -> {
+                        Event event = eventRepository.findById(r.getEventId()).orElse(null);
+                        if (event == null) return null;
+                        EventShortDto dto = eventMapper.toEventShortDto(event);
+                        dto.setRating(r.getScore());
+                        return dto;
+                    })
+                    .filter(dto -> dto != null)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Не удалось получить рекомендации: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    @Override
+    public void likeEvent(Long userId, Long eventId) {
+        try {
+            collectorClient.sendUserAction(userId, eventId, StatsServiceProto.ActionTypeProto.ACTION_LIKE);
+            log.info("Пользователь {} лайкнул событие {}", userId, eventId);
+        } catch (Exception e) {
+            log.warn("Не удалось отправить лайк: {}", e.getMessage());
+        }
     }
 
     private void validateUserExists(Long userId) {
@@ -319,5 +369,13 @@ public class EventServiceImpl implements EventService {
     private Long extractEventIdFromUri(String uri) {
         String[] parts = uri.split("/");
         return Long.parseLong(parts[parts.length - 1]);
+    }
+
+    private Long extractUserIdFromHeader(HttpServletRequest request) {
+        String userIdHeader = request.getHeader("X-EWM-USER-ID");
+        if (userIdHeader != null) {
+            return Long.parseLong(userIdHeader);
+        }
+        return 0L;
     }
 }

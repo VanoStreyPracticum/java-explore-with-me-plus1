@@ -73,7 +73,6 @@ class UpdateEventRequestDtoTest {
     @Test
     @DisplayName("StateAction enum значения для User")
     void userStateActionValues() {
-        // Action and assert
         assertThat(UpdateEventUserRequest.StateAction.SEND_TO_REVIEW).isNotNull();
         assertThat(UpdateEventUserRequest.StateAction.CANCEL_REVIEW).isNotNull();
         assertThat(UpdateEventUserRequest.StateAction.values()).hasSize(2);
@@ -82,7 +81,6 @@ class UpdateEventRequestDtoTest {
     @Test
     @DisplayName("StateAction enum значения для Admin")
     void adminStateActionValues() {
-        // Action and assert
         assertThat(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT).isNotNull();
         assertThat(UpdateEventAdminRequest.StateAction.REJECT_EVENT).isNotNull();
         assertThat(UpdateEventAdminRequest.StateAction.values()).hasSize(2);

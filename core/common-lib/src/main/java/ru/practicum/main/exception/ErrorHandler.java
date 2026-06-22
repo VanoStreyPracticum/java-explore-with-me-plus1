@@ -28,7 +28,7 @@ public class ErrorHandler {
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
                 .reason("Incorrectly made request.")
-                .status("BAD_REQUEST")
+                .status(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -46,7 +46,7 @@ public class ErrorHandler {
                 .errors(List.of(errors))
                 .message(errors)
                 .reason("Incorrectly made request.")
-                .status("BAD_REQUEST")
+                .status(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -64,7 +64,7 @@ public class ErrorHandler {
                 .errors(List.of(errors))
                 .message(errors)
                 .reason("Incorrectly made request.")
-                .status("BAD_REQUEST")
+                .status(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -78,7 +78,7 @@ public class ErrorHandler {
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
                 .reason("Incorrectly made request.")
-                .status("BAD_REQUEST")
+                .status(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -91,7 +91,7 @@ public class ErrorHandler {
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
                 .reason("The required object was not found.")
-                .status("NOT_FOUND")
+                .status(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -104,7 +104,7 @@ public class ErrorHandler {
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
                 .reason("For the requested operation the conditions are not met.")
-                .status("CONFLICT")
+                .status(HttpStatus.CONFLICT.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -117,7 +117,7 @@ public class ErrorHandler {
                 .errors(List.of(e.getMessage()))
                 .message(e.getMessage())
                 .reason("Integrity constraint has been violated.")
-                .status("CONFLICT")
+                .status(HttpStatus.CONFLICT.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -131,7 +131,7 @@ public class ErrorHandler {
                 .errors(List.of(e.getMessage()))
                 .message("An unexpected error occurred")
                 .reason("Internal server error")
-                .status("INTERNAL_SERVER_ERROR")
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .timestamp(LocalDateTime.now())
                 .build();
     }

@@ -1,11 +1,11 @@
 package ru.practicum.main.comment.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.main.comment.model.AdminCommentAction;
 
 @Getter
 @Setter
@@ -13,9 +13,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class AdminCommentActionDto {
-    @NotNull(message = "Действие обязательно")
-    /** Action: PUBLISH or REJECT. */
-    private String action;
-
+    private AdminCommentAction action;
     private String moderationNote;
 }
