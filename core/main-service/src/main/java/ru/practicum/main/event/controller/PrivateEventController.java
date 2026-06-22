@@ -1,28 +1,17 @@
 package ru.practicum.main.event.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.main.event.dto.EventFullDto;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.main.event.dto.EventShortDto;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.main.event.dto.NewEventDto;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.main.event.service.EventService;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.List;
-import org.springframework.format.annotation.DateTimeFormat;
 
 @RestController
 @RequestMapping("/users/{userId}/events")
