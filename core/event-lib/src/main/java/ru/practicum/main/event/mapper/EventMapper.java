@@ -36,7 +36,7 @@ public interface EventMapper {
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "confirmedRequests", ignore = true)
-    
+
     Event toEvent(NewEventDto dto);
 
     /**
@@ -69,7 +69,7 @@ public interface EventMapper {
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "confirmedRequests", ignore = true)
-    
+
     void updateEventFromUserRequest(UpdateEventUserRequest dto, @MappingTarget Event event);
 
     /**
@@ -82,7 +82,7 @@ public interface EventMapper {
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "confirmedRequests", ignore = true)
-    
+
     void updateEventFromAdminRequest(UpdateEventAdminRequest dto, @MappingTarget Event event);
 
     /**

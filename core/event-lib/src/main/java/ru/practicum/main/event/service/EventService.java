@@ -13,19 +13,26 @@ import java.util.List;
 
 public interface EventService {
     List<EventShortDto> getUserEvents(Long userId, int from, int size);
+
     EventFullDto createEvent(Long userId, NewEventDto newEventDto);
+
     EventFullDto getUserEventById(Long userId, Long eventId);
+
     EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest updateRequest);
     List<EventFullDto> searchEventsForAdmin(List<Long> users, List<EventState> states, List<Long> categories,
                                             LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size);
+
     EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateRequest);
     List<EventShortDto> searchPublicEvents(String text, List<Long> categories, Boolean paid,
                                            LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable,
                                            String sort, int from, int size, HttpServletRequest request);
+
     EventFullDto getPublishedEventById(Long eventId, HttpServletRequest request);
+
     EventFullDto getEventById(Long eventId);
 
     // Новые методы
     List<EventShortDto> getRecommendations(Long userId, int maxResults);
+
     void likeEvent(Long userId, Long eventId);
 }
