@@ -11,6 +11,8 @@ import ru.practicum.ewm.stats.proto.UserActionControllerGrpc;
 @Component
 @Slf4j
 public class CollectorClient {
+    private static final long MILLIS_PER_SECOND = 1000L;
+    private static final long NANOS_PER_MILLI = 1_000_000L;
 
     @GrpcClient("collector")
     private UserActionControllerGrpc.UserActionControllerBlockingStub stub;
@@ -18,8 +20,8 @@ public class CollectorClient {
     public void sendUserAction(long userId, long eventId, StatsServiceProto.ActionTypeProto actionType) {
         try {
             Timestamp timestamp = Timestamp.newBuilder()
-                    .setSeconds(System.currentTimeMillis() / 1000)
-                    .setNanos((int) ((System.currentTimeMillis() % 1000) * 1000000))
+                    .setSeconds(System.currentTimeMillis() / MILLIS_PER_SECOND)
+                    .setNanos((int) ((System.currentTimeMillis() % MILLIS_PER_SECOND) * NANOS_PER_MILLI))
                     .build();
             StatsServiceProto.UserActionProto request = StatsServiceProto.UserActionProto.newBuilder()
                     .setUserId(userId)

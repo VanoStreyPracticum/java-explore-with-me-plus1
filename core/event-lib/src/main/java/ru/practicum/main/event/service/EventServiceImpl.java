@@ -251,7 +251,6 @@ public class EventServiceImpl implements EventService {
         saveHit(request);
         Map<Long, Long> viewsMap = getViewsForEvents(List.of(event));
         event.setViews(viewsMap.getOrDefault(eventId, 0L));
-        // Отправляем просмотр в Collector
         try {
             Long userId = extractUserIdFromHeader(request);
             if (userId != 0L) {
@@ -260,7 +259,6 @@ public class EventServiceImpl implements EventService {
         } catch (Exception e) {
             log.warn("Не удалось отправить действие просмотра: {}", e.getMessage());
         }
-        // Получаем рейтинг из Analyzer
         double rating = 0.0;
         try {
             rating = analyzerClient.getInteractionsCount(eventId);

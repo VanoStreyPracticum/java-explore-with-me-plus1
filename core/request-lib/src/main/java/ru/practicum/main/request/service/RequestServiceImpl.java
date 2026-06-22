@@ -90,7 +90,6 @@ public class RequestServiceImpl implements RequestService {
         }
 
         ParticipationRequest savedRequest = requestRepository.save(request);
-        // Отправляем информацию о регистрации через Collector
         collectorClient.sendUserAction(userId, eventId, StatsServiceProto.ActionTypeProto.ACTION_REGISTER);
         log.info("Создана заявка: id={}", savedRequest.getId());
         return requestMapper.toDto(savedRequest);

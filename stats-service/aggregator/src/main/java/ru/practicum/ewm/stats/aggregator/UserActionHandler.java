@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,70 +19,65 @@ import java.util.Map;
 @Slf4j
 public class UserActionHandler {
 
+    private static final BigDecimal VIEW_WEIGHT = new BigDecimal("0.4");
+    private static final BigDecimal REGISTER_WEIGHT = new BigDecimal("0.8");
+    private static final BigDecimal LIKE_WEIGHT = new BigDecimal("1.0");
+
     private final KafkaTemplate<String, SpecificRecordBase> kafkaTemplate;
 
-    // Матрица весов: eventId -> (userId -> max weight)
-    private final Map<Long, Map<Long, Double>> weightsMatrix = new HashMap<>();
-    // Суммы минимальных весов для пар: eventId1 -> (eventId2 -> S_min)
-    private final Map<Long, Map<Long, Double>> minWeightsSums = new HashMap<>();
-    // Общие суммы весов по мероприятиям: eventId -> S
-    private final Map<Long, Double> totalSums = new HashMap<>();
+    private final Map<Long, Map<Long, BigDecimal>> weightsMatrix = new HashMap<>();
+    private final Map<Long, Map<Long, BigDecimal>> minWeightsSums = new HashMap<>();
+    private final Map<Long, BigDecimal> totalSums = new HashMap<>();
 
     @KafkaListener(topics = "stats.user-actions.v1", groupId = "aggregator")
     public void handleUserAction(UserActionAvro action) {
         long userId = action.getUserId();
         long eventId = action.getEventId();
-        double weight = mapActionToWeight(action.getActionType().toString());
+        BigDecimal weight = mapActionToWeight(action.getActionType().toString());
 
-        // Обновляем матрицу весов
-        Map<Long, Double> userWeights = weightsMatrix.computeIfAbsent(eventId, k -> new HashMap<>());
-        Double oldWeight = userWeights.getOrDefault(userId, 0.0);
-        if (weight > oldWeight) {
+        Map<Long, BigDecimal> userWeights = weightsMatrix.computeIfAbsent(eventId, k -> new HashMap<>());
+        BigDecimal oldWeight = userWeights.getOrDefault(userId, BigDecimal.ZERO);
+        if (weight.compareTo(oldWeight) > 0) {
             userWeights.put(userId, weight);
-            // Обновляем частные суммы
             updateSums(eventId, userId, oldWeight, weight);
         }
     }
 
-    private double mapActionToWeight(String actionType) {
+    private BigDecimal mapActionToWeight(String actionType) {
         return switch (actionType) {
-            case "VIEW" -> 0.4;
-            case "REGISTER" -> 0.8;
-            case "LIKE" -> 1.0;
-            default -> 0.0;
+            case "VIEW" -> VIEW_WEIGHT;
+            case "REGISTER" -> REGISTER_WEIGHT;
+            case "LIKE" -> LIKE_WEIGHT;
+            default -> BigDecimal.ZERO;
         };
     }
 
-    private void updateSums(long eventA, long userId, double oldWeight, double newWeight) {
-        // Обновляем общую сумму весов для мероприятия A
-        totalSums.put(eventA, totalSums.getOrDefault(eventA, 0.0) - oldWeight + newWeight);
+    private void updateSums(long eventA, long userId, BigDecimal oldWeight, BigDecimal newWeight) {
+        totalSums.put(eventA, totalSums.getOrDefault(eventA, BigDecimal.ZERO).subtract(oldWeight).add(newWeight));
 
-        // Для каждого другого мероприятия B, с которым взаимодействовал пользователь, обновляем S_min(A,B)
-        for (Map.Entry<Long, Map<Long, Double>> entry : weightsMatrix.entrySet()) {
+        for (Map.Entry<Long, Map<Long, BigDecimal>> entry : weightsMatrix.entrySet()) {
             long eventB = entry.getKey();
             if (eventB == eventA) continue;
 
-            Map<Long, Double> userWeightsB = entry.getValue();
-            Double weightB = userWeightsB.getOrDefault(userId, 0.0);
-            if (weightB == 0.0) continue; // пользователь не взаимодействовал с B
+            Map<Long, BigDecimal> userWeightsB = entry.getValue();
+            BigDecimal weightB = userWeightsB.getOrDefault(userId, BigDecimal.ZERO);
+            if (weightB.compareTo(BigDecimal.ZERO) == 0) continue;
 
-            double oldMin = Math.min(oldWeight, weightB);
-            double newMin = Math.min(newWeight, weightB);
-            double delta = newMin - oldMin;
+            BigDecimal oldMin = oldWeight.min(weightB);
+            BigDecimal newMin = newWeight.min(weightB);
+            BigDecimal delta = newMin.subtract(oldMin);
 
-            if (delta != 0.0) {
-                // Обновляем S_min(A,B) (упорядочиваем ключи)
+            if (delta.compareTo(BigDecimal.ZERO) != 0) {
                 long first = Math.min(eventA, eventB);
                 long second = Math.max(eventA, eventB);
-                Map<Long, Double> inner = minWeightsSums.computeIfAbsent(first, k -> new HashMap<>());
-                double oldSum = inner.getOrDefault(second, 0.0);
-                inner.put(second, oldSum + delta);
+                Map<Long, BigDecimal> inner = minWeightsSums.computeIfAbsent(first, k -> new HashMap<>());
+                BigDecimal oldSum = inner.getOrDefault(second, BigDecimal.ZERO);
+                BigDecimal newSum = oldSum.add(delta);
+                inner.put(second, newSum);
 
-                // Вычисляем новое сходство и отправляем в Kafka
-                double sA = totalSums.getOrDefault(eventA, 0.0);
-                double sB = totalSums.getOrDefault(eventB, 0.0);
-                double sMin = oldSum + delta;
-                double similarity = sMin / (Math.sqrt(sA) * Math.sqrt(sB));
+                BigDecimal sA = totalSums.getOrDefault(eventA, BigDecimal.ZERO);
+                BigDecimal sB = totalSums.getOrDefault(eventB, BigDecimal.ZERO);
+                double similarity = newSum.doubleValue() / (Math.sqrt(sA.doubleValue()) * Math.sqrt(sB.doubleValue()));
 
                 EventSimilarityAvro similarityAvro = EventSimilarityAvro.newBuilder()
                         .setEventA(first)
