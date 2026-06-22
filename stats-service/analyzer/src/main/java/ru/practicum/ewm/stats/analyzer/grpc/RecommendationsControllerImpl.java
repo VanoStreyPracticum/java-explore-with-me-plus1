@@ -99,8 +99,7 @@ public class RecommendationsControllerImpl extends RecommendationsControllerGrpc
                                      StreamObserver<RecommendedEventProto> responseObserver) {
         List<Long> eventIds = request.getEventIdList();
         for (Long eventId : eventIds) {
-            double sum = userActionRepository.findAll().stream()
-                    .filter(a -> a.getEventId().equals(eventId))
+            double sum = userActionRepository.findAllByEventId(eventId).stream()
                     .mapToDouble(UserAction::getWeight)
                     .sum();
             responseObserver.onNext(RecommendedEventProto.newBuilder()

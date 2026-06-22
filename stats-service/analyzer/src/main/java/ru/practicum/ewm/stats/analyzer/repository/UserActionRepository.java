@@ -20,4 +20,7 @@ public interface UserActionRepository extends JpaRepository<UserAction, Long> {
 
     @Query("SELECT ua FROM UserAction ua WHERE ua.id.userId = :userId")
     List<UserAction> findAllByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT ua FROM UserAction ua WHERE ua.id.eventId = :eventId")
+    List<UserAction> findAllByEventId(@Param("eventId") Long eventId);
 }
