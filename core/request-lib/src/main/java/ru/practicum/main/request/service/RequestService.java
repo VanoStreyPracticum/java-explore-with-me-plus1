@@ -9,7 +9,6 @@ import java.util.List;
 
 public interface RequestService {
 
-    // ========== Методы пользователя ==========
 
     /**
      * Получить свои заявки на участие в чужих событиях
@@ -26,7 +25,6 @@ public interface RequestService {
      */
     ParticipationRequestDto cancelRequest(Long userId, Long requestId);
 
-    // ========== Методы организатора события ==========
 
     /**
      * Получить заявки на своё событие

@@ -19,14 +19,12 @@ class EventFullDtoTest {
     @Test
     @DisplayName("Должен создать DTO через builder")
     void builderCreatesDto() {
-        // Setup
         LocalDateTime eventDate = LocalDateTime.now().plusDays(7);
         LocalDateTime createdOn = LocalDateTime.now();
         UserShortDto initiator = new UserShortDto(1L, "Test User");
         CategoryDto category = new CategoryDto(1L, "Test Category");
         LocationDto location = new LocationDto(55.75f, 37.62f);
 
-        // Action
         EventFullDto dto = EventFullDto.builder()
                 .id(1L)
                 .title("Test Event")
@@ -45,7 +43,6 @@ class EventFullDtoTest {
                 .state(EventState.PUBLISHED)
                 .build();
 
-        // Assert
         assertThat(dto.getId()).isEqualTo(1L);
         assertThat(dto.getTitle()).isEqualTo("Test Event");
         assertThat(dto.getState()).isEqualTo(EventState.PUBLISHED);
@@ -56,10 +53,8 @@ class EventFullDtoTest {
     @Test
     @DisplayName("Должен создать пустой DTO")
     void noArgsConstructorCreatesEmptyDto() {
-        // Action
         EventFullDto dto = new EventFullDto();
 
-        // Assert
         assertThat(dto.getId()).isNull();
         assertThat(dto.getTitle()).isNull();
         assertThat(dto.getState()).isNull();
@@ -68,17 +63,14 @@ class EventFullDtoTest {
     @Test
     @DisplayName("Setters должны работать")
     void settersWork() {
-        // Setup
         EventFullDto dto = new EventFullDto();
 
-        // Action
         dto.setId(1L);
         dto.setTitle("Setter Event");
         dto.setState(EventState.PENDING);
         dto.setViews(500L);
         dto.setConfirmedRequests(10L);
 
-        // Assert
         assertThat(dto.getId()).isEqualTo(1L);
         assertThat(dto.getTitle()).isEqualTo("Setter Event");
         assertThat(dto.getState()).isEqualTo(EventState.PENDING);

@@ -23,20 +23,16 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен создать исключение с сообщением")
         void constructorWithMessageCreatesException() {
-            // Action
             NotFoundException exception = new NotFoundException("Entity not found");
 
-            // Assert
             assertThat(exception.getMessage()).isEqualTo("Entity not found");
         }
 
         @Test
         @DisplayName("Должен быть наследником RuntimeException")
         void isRuntimeException() {
-            // Action
             NotFoundException exception = new NotFoundException("test");
 
-            // Assert
             assertThat(exception).isInstanceOf(RuntimeException.class);
         }
 
@@ -59,10 +55,8 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен создать исключение с сообщением")
         void constructorWithMessageCreatesException() {
-            // Action
             ConflictException exception = new ConflictException("Conflict occurred");
 
-            // Assert
             assertThat(exception.getMessage()).isEqualTo("Conflict occurred");
         }
 
@@ -85,10 +79,8 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен создать исключение с сообщением")
         void constructorWithMessageCreatesException() {
-            // Action
             ValidationException exception = new ValidationException("Validation failed");
 
-            // Assert
             assertThat(exception.getMessage()).isEqualTo("Validation failed");
         }
 
@@ -111,10 +103,8 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен создать ApiError через builder")
         void builderCreatesApiError() {
-            // Setup
             LocalDateTime timestamp = LocalDateTime.now();
 
-            // Action
             ApiError apiError = ApiError.builder()
                     .status("NOT_FOUND")
                     .reason("Resource not found")
@@ -123,7 +113,6 @@ class ExceptionsTest {
                     .errors(List.of("error1", "error2"))
                     .build();
 
-            // Assert
             assertThat(apiError.getStatus()).isEqualTo("NOT_FOUND");
             assertThat(apiError.getReason()).isEqualTo("Resource not found");
             assertThat(apiError.getMessage()).isEqualTo("Event with id=1 was not found");
@@ -134,10 +123,8 @@ class ExceptionsTest {
         @Test
         @DisplayName("Должен создать пустой ApiError")
         void noArgsConstructorCreatesEmptyApiError() {
-            // Action
             ApiError apiError = new ApiError();
 
-            // Assert
             assertThat(apiError.getStatus()).isNull();
             assertThat(apiError.getMessage()).isNull();
         }
