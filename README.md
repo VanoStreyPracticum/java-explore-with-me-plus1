@@ -28,6 +28,21 @@
 
 ## Архитектура
 
+```mermaid
+graph TD
+    Client([HTTP Client / Postman]) --> Gateway[Spring Cloud Gateway :8080]
+    Gateway --> Eureka[Eureka Discovery Server :8761]
+    Gateway --> Config[Config Server :8888]
+    Gateway --> EWM[EWM Main Service :8080]
+    
+    EWM -->|Event Logs / Avro| Kafka[Apache Kafka KRaft Cluster]
+    Kafka --> Collector[Stats Collector Service]
+    Collector --> Aggregator[Stats Aggregator Service]
+    Aggregator --> Postgres[(PostgreSQL DB)]
+    
+    EWM -->|Fast Sync Stats RPC| gRPC[Stats gRPC Server / Protobuf]
+```
+
 Проект состоит из следующих модулей:
 
 ### Основные библиотеки (`core/`)
@@ -123,4 +138,6 @@ newman run postman/feature.json --delay-request 50 -r cli
 
 ## Автор
 
-VanoStreyPracticum — в рамках обучения на платформе Яндекс Практикум.
+**Иван Медведев** ([@foolvan](https://t.me/foolvan))  
+GitHub: [https://github.com/VanoStrey](https://github.com/VanoStrey) | [https://github.com/VanoStreyPracticum](https://github.com/VanoStreyPracticum)  
+В рамках расширенной программы «Java-разработчик» Яндекс Практикума.
