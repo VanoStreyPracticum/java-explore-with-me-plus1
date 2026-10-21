@@ -19,6 +19,11 @@
         <module>stats-dto</module>
         <module>stats-client</module>
         <module>stats-server</module>
+        <module>collector</module>
+        <module>aggregator</module>
+        <module>analyzer</module>
+        <module>stats-avro-schemas</module>
+        <module>stats-grpc-proto</module>
     </modules>
 
     <properties>
@@ -28,15 +33,12 @@
 
     <dependencyManagement>
         <dependencies>
-
-            <!-- Внутренние модули -->
             <dependency>
                 <groupId>ru.practicum</groupId>
                 <artifactId>stats-dto</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Lombok -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -44,7 +46,6 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- MapStruct -->
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
@@ -82,5 +83,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
 </project>

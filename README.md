@@ -1,184 +1,143 @@
-# Explore With Me — афиша событий
+# Explore With Me — афиша событий с рекомендательной системой
 
-Приложение **Explore With Me** позволяет пользователям делиться информацией об интересных событиях, находить компанию для участия в них, комментировать и оценивать прошедшие мероприятия.
-
----
-
-## Текущее состояние
-
-✅ **Этап 1 (основной сервис и сервис статистики)** полностью готов.  
-🚧 Этапы 2 и 3 (подключение Spring Cloud Config, Eureka, Gateway) запланированы, инфраструктура уже подготовлена в модуле `infra` и будет активирована в следующих релизах.
+Приложение **Explore With Me** позволяет пользователям делиться информацией об интересных событиях, находить компанию для участия в них, комментировать и оценивать прошедшие мероприятия. На третьем этапе добавлена рекомендательная система на основе совместной фильтрации и косинусного сходства.
 
 ---
 
-## Возможности основного сервиса
+## Текущее состояние (Этап 3)
 
-- **События** — создание, модерация, публичный поиск с фильтрами (по тексту, категориям, платности, диапазону дат), сортировка по дате или просмотрам, учёт просмотров из сервиса статистики.
-- **Пользователи** — регистрация, поиск, удаление.
-- **Категории** — создание, редактирование, удаление (с контролем целостности).
-- **Подборки** — подборки событий, в том числе с закреплением на главной странице.
-- **Запросы на участие** — подача заявок, подтверждение/отклонение организатором, отмена заявки, управление лимитами участников.
-- **Комментарии** — создание, редактирование, удаление, модерация администратором (публикация/отклонение).
-- **Рейтинги** — голосование (LIKE/DISLIKE) за события, просмотр сводки лайков/дизлайков.
-- **Подписки** — оформление и отмена подписок на пользователей, просмотр своих подписок и подписчиков.
-- **Управляемые локации** — создание и редактирование администратором предопределённых мест проведения.
-- **История модерации** — просмотр журнала действий администратора по каждому событию.
+✅ **Рекомендательная система** реализована:
+- Микросервисы **Collector**, **Aggregator**, **Analyzer** работают с Apache Kafka и gRPC.
+- Collector принимает действия пользователей (просмотр, регистрация, лайк) по gRPC и отправляет в Kafka.
+- Aggregator рассчитывает сходство мероприятий по косинусному сходству и публикует в топик `stats.events-similarity.v1`.
+- Analyzer сохраняет данные в PostgreSQL и предоставляет gRPC API для получения рекомендаций и рейтинга мероприятий.
+- В основной сервис добавлены эндпоинты:
+    - `GET /events/recommendations` — рекомендации для пользователя.
+    - `PUT /events/{eventId}/like` — лайк мероприятия.
+    - При получении опубликованного события отправляется просмотр через Collector, а рейтинг запрашивается из Analyzer.
+- Взаимодействие через gRPC-клиенты в модуле `stats-client`, обнаружение адресов через Eureka.
 
-Все операции снабжены пагинацией, валидацией и корректными HTTP-кодами ответов.
+✅ **Инфраструктура**:
+- Apache Kafka + Zookeeper + Schema Registry в Docker Compose.
+- Все микросервисы (collector, aggregator, analyzer) регистрируются в Eureka и получают конфигурацию из Config Server.
+- Основной сервис (main-service) и сервис статистики (stats-server) продолжают работать через Gateway.
 
----
-
-## Сервис статистики
-
-- Сохраняет информацию о каждом запросе к основному сервису (`POST /hit`).
-- Предоставляет статистику просмотров (`GET /stats`) с возможностью фильтрации по URI, диапазону дат и уникальным IP.
-
-Основной сервис использует `StatsClient` для взаимодействия с сервисом статистики.
+✅ **Все Postman-тесты** (`ewm-stat-service`, `ewm-main-service`, `feature`) проходят успешно (за исключением одного ассерта, связанного с переходом с `views` на `rating`, который будет адаптирован).
 
 ---
 
-## Структура проекта
+## Архитектура
 
+```mermaid
+graph TD
+    Client([HTTP Client / Postman]) --> Gateway[Spring Cloud Gateway :8080]
+    Gateway --> Eureka[Eureka Discovery Server :8761]
+    Gateway --> Config[Config Server :8888]
+    Gateway --> EWM[EWM Main Service :8080]
+    
+    EWM -->|Event Logs / Avro| Kafka[Apache Kafka KRaft Cluster]
+    Kafka --> Collector[Stats Collector Service]
+    Collector --> Aggregator[Stats Aggregator Service]
+    Aggregator --> Postgres[(PostgreSQL DB)]
+    
+    EWM -->|Fast Sync Stats RPC| gRPC[Stats gRPC Server / Protobuf]
 ```
-explore-with-me
-├── core
-│   └── main-service          # основной сервис (Spring Boot, JPA, валидация)
-├── infra
-│   ├── config-server         # Spring Cloud Config Server (будет использоваться в будущем)
-│   ├── discovery-server      # Eureka (будет использоваться в будущем)
-│   └── gateway-server        # Spring Cloud Gateway (будет использоваться в будущем)
-├── stats-service
-│   ├── stats-dto             # общие DTO
-│   ├── stats-client          # HTTP-клиент для сервиса статистики
-│   └── stats-server          # сервис статистики (Spring Boot, JPA)
-├── postman                   # коллекции тестов Postman
-└── docker-compose.yml        # описание контейнеров для локального запуска
+
+Проект состоит из следующих модулей:
+
+### Основные библиотеки (`core/`)
+- **common-lib** — общие исключения, модель пользователя, базовые DTO.
+- **user-lib** — управление пользователями и подписками.
+- **event-lib** — события, категории, подборки, управляемые локации, модерация.
+- **request-lib** — заявки на участие в событиях.
+- **comment-lib** — комментарии к событиям.
+- **rating-lib** — рейтинги и голосование за события.
+- **main-service** — контроллеры и Spring Boot приложение, объединяющее все библиотеки.
+
+### Инфраструктурные сервисы (`infra/`)
+- **config-server** — Spring Cloud Config Server (порт `8888`).
+- **discovery-server** — Eureka Server для обнаружения сервисов (порт `8761`).
+- **gateway-server** — Spring Cloud Gateway как единая точка входа (порт `8080`).
+
+### Сервис статистики и рекомендаций (`stats-service/`)
+- **stats-server** — сбор и просмотр статистики посещений (порт `9090`).
+- **stats-client** — HTTP и gRPC клиенты для взаимодействия с сервисами.
+- **stats-dto** — общие DTO для статистики.
+- **stats-avro-schemas** — Avro-схемы для Kafka.
+- **stats-grpc-proto** — gRPC-схемы.
+- **collector** — gRPC-сервер, принимающий действия пользователей и отправляющий в Kafka.
+- **aggregator** — рассчитывает сходство мероприятий и отправляет результаты в Kafka.
+- **analyzer** — хранит данные в БД и предоставляет gRPC API для рекомендаций и рейтинга.
+
+---
+
+## Внутреннее API
+
+- **Collector**: `CollectUserAction (UserActionProto) returns (Empty)` — вызывается из `main-service` через gRPC при просмотрах, регистрациях, лайках.
+- **Analyzer**:
+    - `GetRecommendationsForUser (UserPredictionsRequestProto) returns (stream RecommendedEventProto)` — возвращает рекомендованные мероприятия для пользователя.
+    - `GetSimilarEvents (SimilarEventsRequestProto) returns (stream RecommendedEventProto)` — возвращает похожие мероприятия.
+    - `GetInteractionsCount (InteractionsCountRequestProto) returns (stream RecommendedEventProto)` — возвращает сумму весов взаимодействий для мероприятия.
+
+---
+
+## Внешний API
+
+Полная спецификация API доступна в файлах:
+- `ewm-main-service-spec.json`
+- `ewm-stats-service-spec.json`
+
+Все эндпоинты доступны через Gateway на порту `8080`.
+
+Новые эндпоинты:
+- `GET /events/recommendations?size=N` (заголовок `X-EWM-USER-ID`) — возвращает рекомендованные события.
+- `PUT /events/{eventId}/like` (заголовок `X-EWM-USER-ID`) — ставит лайк событию.
+
+---
+
+## Запуск (локально)
+
+### Через Docker Compose
+
+```bash
+mvn clean package -DskipTests
+docker compose build --no-cache
+docker compose up -d
+```
+
+Будут запущены все контейнеры, включая Kafka, Zookeeper, Schema Registry, микросервисы рекомендаций.
+
+После запуска проверьте, что все сервисы healthy:
+```bash
+docker compose ps
+```
+
+Затем выполните тесты:
+```bash
+newman run postman/ewm-stat-service.json --delay-request 50 -r cli
+newman run postman/ewm-main-service.json --delay-request 50 -r cli
+newman run postman/feature.json --delay-request 50 -r cli
 ```
 
 ---
 
 ## Технологии
 
-| Компонент       | Технологии |
-|-----------------|------------|
-| Язык            | Java 21 |
-| Фреймворк       | Spring Boot 3.5.0, Spring Data JPA, Spring Cloud (подготовлен) |
-| База данных     | PostgreSQL 16 (основной сервис и статистика) |
-| Сборка          | Maven 3.9+ |
-| Контейнеризация | Docker, Docker Compose |
-| Тестирование    | JUnit 5, Mockito, Postman (Newman) |
-| Прочее          | Lombok, MapStruct, Bean Validation, Spring Actuator |
-
----
-
-## Запуск (локально)
-
-Предварительные требования:
-- Docker и Docker Compose
-- либо JDK 21 + Maven + PostgreSQL
-
-### Через Docker Compose
-
-```bash
-docker compose up -d
-```
-
-Будут запущены:
-- `ewm-service` (основной сервис, порт 8080)
-- `stats-server` (сервис статистики, порт 9090)
-- `ewm-db` (PostgreSQL для основного сервиса, порт 5434)
-- `stats-db` (PostgreSQL для статистики, порт 5433)
-
-### Без Docker
-
-1. Убедитесь, что локально работают два экземпляра PostgreSQL и доступны порты 5434 и 5433.
-2. Выполните сборку:
-   ```bash
-   mvn clean package -DskipTests
-   ```
-3. Запустите `StatsServerApplication` и `MainServiceApplication`, передав необходимые переменные окружения (`MAIN_DB_URL`, `MAIN_DB_USER`, `MAIN_DB_PASSWORD`, `STATS_SERVER_URL`, `SPRING_DATASOURCE_*`).
-
----
-
-## API (краткий обзор)
-
-### Сервис статистики (9090)
-
-| Метод | Путь      | Описание                  |
-|-------|-----------|---------------------------|
-| POST  | `/hit`    | Сохранить информацию о запросе |
-| GET   | `/stats`  | Получить статистику просмотров |
-
-### Основной сервис (8080)
-
-**Публичные эндпоинты**  
-`GET /events` — поиск опубликованных событий  
-`GET /events/{id}` — детальная информация о событии  
-`GET /categories` — список категорий  
-`GET /compilations` — подборки событий  
-`GET /locations` — управляемые локации
-
-**Приватные эндпоинты**  
-`POST /users/{userId}/events` — создать событие  
-`GET /users/{userId}/events` — события пользователя  
-`PATCH /users/{userId}/events/{eventId}` — редактирование  
-`POST /users/{userId}/requests` — подать заявку на участие  
-`PATCH /users/{userId}/requests/{requestId}/cancel` — отменить заявку  
-`POST /users/{userId}/events/{eventId}/comments` — оставить комментарий  
-`PUT /users/{userId}/events/{eventId}/rating` — оценить событие  
-`POST /users/{userId}/subscriptions` — подписаться на пользователя  
-… и другие.
-
-**Административные эндпоинты**  
-`GET /admin/events` — поиск событий (с фильтром по статусам)  
-`PATCH /admin/events/{eventId}` — модерация (публикация/отклонение)  
-`GET /admin/events/{eventId}/moderation-history` — история модерации  
-`POST /admin/categories` — создать категорию  
-`DELETE /admin/categories/{catId}` — удалить категорию  
-`POST /admin/compilations` — создать подборку  
-`DELETE /admin/compilations/{compId}` — удалить подборку  
-`GET /admin/comments` — просмотр комментариев с фильтром по статусам  
-`PATCH /admin/comments/{commentId}` — модерировать комментарий  
-`DELETE /admin/comments/{commentId}` — удалить комментарий  
-`POST /admin/users` — создать пользователя  
-`DELETE /admin/users/{userId}` — удалить пользователя  
-`POST /admin/locations` — создать локацию  
-`PATCH /admin/locations/{locationId}` — обновить локацию  
-`DELETE /admin/locations/{locationId}` — удалить локацию  
-… и другие.
-
----
-
-## Тестирование
-
-В папке `postman` лежат три JSON-коллекции:
-- `ewm-main-service.json` — тесты основного сервиса
-- `ewm-stat-service.json` — тесты сервиса статистики
-- `feature.json` — тесты дополнительной функциональности (комментарии, рейтинги, подписки, локации, модерация)
-
-Для запуска используйте [Newman](https://github.com/postmanlabs/newman):
-
-```bash
-newman run postman/ewm-main-service.json --delay-request 50
-newman run postman/ewm-stat-service.json --delay-request 50
-newman run postman/feature.json --delay-request 50
-```
-
-Все тесты успешно проходят в CI (GitHub Actions).
-
----
-
-## Дальнейшее развитие
-
-В следующих этапах планируется:
-- активировать Spring Cloud Config для централизованного управления конфигурациями;
-- подключить Eureka для динамического обнаружения сервисов;
-- настроить Spring Cloud Gateway в качестве единой точки входа.
-
-Инфраструктура для этого уже подготовлена в модуле `infra`.
+| Компонент        | Технологии                                      |
+|------------------|-------------------------------------------------|
+| Язык             | Java 21                                         |
+| Фреймворк        | Spring Boot 3.5.0, Spring Data JPA, Spring Cloud |
+| База данных      | PostgreSQL 15                                   |
+| Микросервисы     | Spring Cloud Config, Eureka, Gateway, gRPC      |
+| Очередь сообщений| Apache Kafka, Avro, Schema Registry             |
+| Сборка           | Maven 3.9+                                      |
+| Тестирование     | JUnit 5, Mockito, Postman (Newman)               |
+| Прочее           | Lombok, MapStruct, Bean Validation, Actuator    |
 
 ---
 
 ## Автор
 
-VanoStreyPracticum — в рамках обучения на платформе Яндекс Практикум.
+**Иван Медведев** ([@foolvan](https://t.me/foolvan))  
+GitHub: [https://github.com/VanoStrey](https://github.com/VanoStrey) | [https://github.com/VanoStreyPracticum](https://github.com/VanoStreyPracticum)  
+В рамках расширенной программы «Java-разработчик» Яндекс Практикума.

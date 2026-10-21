@@ -14,10 +14,8 @@ class CategoryTest {
     @Test
     @DisplayName("Должен создать категорию через конструктор")
     void constructor_CreatesCategory() {
-        // Action
         Category category = new Category(1L, "Test Category");
 
-        // Assert
         assertThat(category.getId()).isEqualTo(1L);
         assertThat(category.getName()).isEqualTo("Test Category");
     }
@@ -25,13 +23,11 @@ class CategoryTest {
     @Test
     @DisplayName("Должен создать категорию через builder")
     void builder_CreatesCategory() {
-        // Action
         Category category = Category.builder()
                 .id(1L)
                 .name("Builder Category")
                 .build();
 
-        // Assert
         assertThat(category.getId()).isEqualTo(1L);
         assertThat(category.getName()).isEqualTo("Builder Category");
     }
@@ -39,10 +35,8 @@ class CategoryTest {
     @Test
     @DisplayName("Должен создать пустую категорию через no-args конструктор")
     void noArgsConstructor_CreatesEmptyCategory() {
-        // Action
         Category category = new Category();
 
-        // Assert
         assertThat(category.getId()).isNull();
         assertThat(category.getName()).isNull();
     }
@@ -50,14 +44,11 @@ class CategoryTest {
     @Test
     @DisplayName("Setters должны устанавливать значения")
     void setters_SetValues() {
-        // Setup
         Category category = new Category();
 
-        // Action
         category.setId(1L);
         category.setName("Setter Category");
 
-        // Assert
         assertThat(category.getId()).isEqualTo(1L);
         assertThat(category.getName()).isEqualTo("Setter Category");
     }

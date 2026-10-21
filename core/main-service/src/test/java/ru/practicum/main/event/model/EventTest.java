@@ -18,13 +18,11 @@ class EventTest {
     @Test
     @DisplayName("Должен создать событие через builder")
     void builder_CreatesEvent() {
-        // Setup
         User initiator = User.builder().id(1L).name("Test User").email("test@test.com").build();
         Category category = Category.builder().id(1L).name("Test Category").build();
         Location location = Location.builder().lat(55.75f).lon(37.62f).build();
         LocalDateTime eventDate = LocalDateTime.now().plusDays(7);
 
-        // Action
         Event event = Event.builder()
                 .id(1L)
                 .title("Test Event")
@@ -40,7 +38,6 @@ class EventTest {
                 .state(EventState.PENDING)
                 .build();
 
-        // Assert
         assertThat(event.getId()).isEqualTo(1L);
         assertThat(event.getTitle()).isEqualTo("Test Event");
         assertThat(event.getAnnotation()).isEqualTo("Test Annotation");
@@ -58,10 +55,8 @@ class EventTest {
     @Test
     @DisplayName("Должен создать событие через no-args конструктор с дефолтным состоянием")
     void noArgsConstructor_CreatesEventWithDefaultState() {
-        // Action
         Event event = new Event();
 
-        // Assert
         assertThat(event.getId()).isNull();
         assertThat(event.getTitle()).isNull();
         assertThat(event.getState()).isEqualTo(EventState.PENDING);
@@ -70,17 +65,14 @@ class EventTest {
     @Test
     @DisplayName("Setters должны устанавливать значения")
     void setters_SetValues() {
-        // Setup
         Event event = new Event();
 
-        // Action
         event.setId(1L);
         event.setTitle("Setter Event");
         event.setState(EventState.PUBLISHED);
         event.setPaid(false);
         event.setParticipantLimit(50);
 
-        // Assert
         assertThat(event.getId()).isEqualTo(1L);
         assertThat(event.getTitle()).isEqualTo("Setter Event");
         assertThat(event.getState()).isEqualTo(EventState.PUBLISHED);
@@ -91,19 +83,16 @@ class EventTest {
     @Test
     @DisplayName("Должен корректно устанавливать даты")
     void dates_AreSetCorrectly() {
-        // Setup
         LocalDateTime createdOn = LocalDateTime.now();
         LocalDateTime eventDate = LocalDateTime.now().plusDays(7);
         LocalDateTime publishedOn = LocalDateTime.now().plusDays(1);
 
-        // Action
         Event event = Event.builder()
                 .createdOn(createdOn)
                 .eventDate(eventDate)
                 .publishedOn(publishedOn)
                 .build();
 
-        // Assert
         assertThat(event.getCreatedOn()).isEqualTo(createdOn);
         assertThat(event.getEventDate()).isEqualTo(eventDate);
         assertThat(event.getPublishedOn()).isEqualTo(publishedOn);
@@ -112,13 +101,10 @@ class EventTest {
     @Test
     @DisplayName("Должен корректно работать с confirmedRequests")
     void confirmedRequests_WorksCorrectly() {
-        // Setup
         Event event = new Event();
 
-        // Action
         event.setConfirmedRequests(25L);
 
-        // Assert
         assertThat(event.getConfirmedRequests()).isEqualTo(25L);
     }
 }

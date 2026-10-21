@@ -34,10 +34,8 @@ class CategoryDtoTest {
         @Test
         @DisplayName("Должен создать DTO через конструктор")
         void constructor_CreatesDto() {
-            // Action
             CategoryDto dto = new CategoryDto(1L, "Test Category");
 
-            // Assert
             assertThat(dto.getId()).isEqualTo(1L);
             assertThat(dto.getName()).isEqualTo("Test Category");
         }
@@ -45,13 +43,11 @@ class CategoryDtoTest {
         @Test
         @DisplayName("Должен создать DTO через builder")
         void builder_CreatesDto() {
-            // Action
             CategoryDto dto = CategoryDto.builder()
                     .id(1L)
                     .name("Builder Category")
                     .build();
 
-            // Assert
             assertThat(dto.getId()).isEqualTo(1L);
             assertThat(dto.getName()).isEqualTo("Builder Category");
         }
@@ -59,10 +55,8 @@ class CategoryDtoTest {
         @Test
         @DisplayName("Должен создать пустой DTO через no-args конструктор")
         void noArgsConstructor_CreatesEmptyDto() {
-            // Action
             CategoryDto dto = new CategoryDto();
 
-            // Assert
             assertThat(dto.getId()).isNull();
             assertThat(dto.getName()).isNull();
         }
@@ -75,26 +69,20 @@ class CategoryDtoTest {
         @Test
         @DisplayName("Валидный DTO не должен иметь нарушений")
         void validDto_NoViolations() {
-            // Setup
             CategoryDto dto = new CategoryDto(1L, "Valid Category");
 
-            // Action
             Set<ConstraintViolation<CategoryDto>> violations = validator.validate(dto);
 
-            // Assert
             assertThat(violations).isEmpty();
         }
 
         @Test
         @DisplayName("Пустое название должно нарушать валидацию")
         void blankName_HasViolation() {
-            // Setup
             CategoryDto dto = new CategoryDto(1L, "");
 
-            // Action
             Set<ConstraintViolation<CategoryDto>> violations = validator.validate(dto);
 
-            // Assert
             assertThat(violations).isNotEmpty();
             assertThat(violations)
                     .extracting(v -> v.getPropertyPath().toString())
@@ -104,27 +92,21 @@ class CategoryDtoTest {
         @Test
         @DisplayName("Null название должно нарушать валидацию")
         void nullName_HasViolation() {
-            // Setup
             CategoryDto dto = new CategoryDto(1L, null);
 
-            // Action
             Set<ConstraintViolation<CategoryDto>> violations = validator.validate(dto);
 
-            // Assert
             assertThat(violations).isNotEmpty();
         }
 
         @Test
         @DisplayName("Слишком длинное название должно нарушать валидацию")
         void tooLongName_HasViolation() {
-            // Setup
             String longName = "A".repeat(51); // more than 50 characters
             CategoryDto dto = new CategoryDto(1L, longName);
 
-            // Action
             Set<ConstraintViolation<CategoryDto>> violations = validator.validate(dto);
 
-            // Assert
             assertThat(violations).isNotEmpty();
             assertThat(violations)
                     .extracting(v -> v.getPropertyPath().toString())
@@ -134,27 +116,21 @@ class CategoryDtoTest {
         @Test
         @DisplayName("Название максимальной длины должно быть валидным")
         void maxLengthName_NoViolation() {
-            // Setup
             String maxName = "A".repeat(50); // exactly 50 characters
             CategoryDto dto = new CategoryDto(1L, maxName);
 
-            // Action
             Set<ConstraintViolation<CategoryDto>> violations = validator.validate(dto);
 
-            // Assert
             assertThat(violations).isEmpty();
         }
 
         @Test
         @DisplayName("Название минимальной длины должно быть валидным")
         void minLengthName_NoViolation() {
-            // Setup
             CategoryDto dto = new CategoryDto(1L, "A"); // 1 character
 
-            // Action
             Set<ConstraintViolation<CategoryDto>> violations = validator.validate(dto);
 
-            // Assert
             assertThat(violations).isEmpty();
         }
     }
